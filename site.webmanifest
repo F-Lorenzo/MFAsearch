@@ -1,0 +1,17 @@
+{
+  "name": "MFA Search",
+  "short_name": "MFA Search",
+  "description": "Consultora de búsqueda y selección de talento en Buenos Aires, Argentina.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0D2137",
+  "theme_color": "#0D2137",
+  "lang": "es-AR",
+  "icons": [
+    {
+      "src": "assets/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
