@@ -473,7 +473,12 @@
       </div>
     </div>
     <div class="contact-form-wrap" id="ctFormWrap">
-      <form class="contact-form" id="ctForm" action="/api/contact" method="POST" novalidate>
+      <form class="contact-form" id="ctForm" action="https://api.web3forms.com/submit" method="POST" novalidate>
+        <!-- Replaced at Vercel build time (scripts/inject-env.js) with the WEB3FORMS_ACCESS_KEY env var -->
+        <input type="hidden" name="access_key" value="__WEB3FORMS_ACCESS_KEY__"/>
+        <input type="hidden" name="to" value="ignacio.menendez@mfasearch.com.ar"/>
+        <input type="hidden" name="subject" value="Nueva consulta desde mfasearch.com.ar"/>
+        <input type="hidden" name="from_name" value="Formulario MFA Search"/>
         <input type="checkbox" name="botcheck" class="visually-hidden" tabindex="-1" autocomplete="off"/>
         <div class="form-row">
           <div class="form-field"><label for="f-name" data-i18n="form_name">Nombre</label><input id="f-name" name="name" type="text" placeholder="Juan García" autocomplete="name"/></div>

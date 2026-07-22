@@ -1,0 +1,9 @@
+{
+  "name": "mfa-search",
+  "private": true,
+  "version": "1.0.0",
+  "description": "MFA Search — static site with a Vercel build step that injects the Web3Forms access key from an environment variable.",
+  "scripts": {
+    "build": "node scripts/inject-env.js"
+  }
+}

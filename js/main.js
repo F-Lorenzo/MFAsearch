@@ -240,10 +240,14 @@ window.addEventListener('resize',()=>{
   if(window.innerWidth>900 && menuOpen) closeMenu();
 },{passive:true});
 
-/* ══ Contact form — posts to /api/contact (Vercel Serverless Function).
-   That function holds the Web3Forms access key server-side (env var
-   WEB3FORMS_ACCESS_KEY) and forwards the message — the key never
-   reaches the browser. See api/contact.js. */
+/* ══ Contact form — posts straight to Web3Forms (web3forms.com) from the
+   browser, which is how Web3Forms is designed to be used (their API sits
+   behind a bot-challenge that blocks server-to-server calls, which is why
+   a Vercel proxy doesn't work here). The access_key hidden input's value
+   is injected at Vercel build time from the WEB3FORMS_ACCESS_KEY env var
+   (see scripts/inject-env.js) — it never reaches the git repo. */
+const WEB3FORMS_PLACEHOLDER='__WEB3FORMS_ACCESS_KEY__';
+
 function hideFormStatus(){
   const status=document.getElementById('formStatus');
   if(status){ status.classList.remove('show','success','error'); status.textContent=''; }
@@ -272,9 +276,17 @@ async function handleContactSubmit(e){
   const name=form.elements['name'].value.trim();
   const email=form.elements['email'].value.trim();
   const message=form.elements['message'].value.trim();
+  const accessKey=form.elements['access_key'].value.trim();
 
   if(!name || !email || !message){
     status.textContent=T[lang].form_error;
+    status.classList.remove('success');
+    status.classList.add('show','error');
+    return;
+  }
+
+  if(!accessKey || accessKey===WEB3FORMS_PLACEHOLDER){
+    status.textContent=T[lang].form_not_configured;
     status.classList.remove('success');
     status.classList.add('show','error');
     return;
@@ -293,6 +305,10 @@ async function handleContactSubmit(e){
       method:'POST',
       headers:{'Content-Type':'application/json','Accept':'application/json'},
       body:JSON.stringify({
+        access_key:accessKey,
+        to:form.elements['to'].value,
+        subject:form.elements['subject'].value,
+        from_name:form.elements['from_name'].value,
         name,
         email,
         message,
@@ -307,13 +323,11 @@ async function handleContactSubmit(e){
       hideFormStatus();
       showFormSuccess();
       return;
-    } else if(result.message==='not_configured'){
-      throw new Error('not_configured');
     } else {
       throw new Error(result.message || 'send_error');
     }
   } catch(err){
-    status.textContent=err.message==='not_configured' ? T[lang].form_not_configured : T[lang].form_send_error;
+    status.textContent=T[lang].form_send_error;
     status.classList.remove('success');
     status.classList.add('error');
   } finally {
