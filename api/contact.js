@@ -2,6 +2,13 @@
 // The access key never reaches the browser: it's read here from the
 // WEB3FORMS_ACCESS_KEY environment variable, set in the Vercel project
 // (Settings → Environment Variables), not committed to the repo.
+//
+// NOTE: this always responds with HTTP 200 (except for a wrong method).
+// Success/failure travels in the JSON body's "success" field instead of
+// the status code — Cloudflare (in front of this domain) intercepts 5xx
+// responses and replaces the body with its own generic error page, which
+// would hide the real error from the client. The frontend (js/main.js)
+// only ever reads result.success / result.message, never res.status.
 module.exports = async (req, res) => {
   try {
     if (req.method !== 'POST') {
@@ -17,12 +24,13 @@ module.exports = async (req, res) => {
     }
 
     if (!name || !email || !message) {
-      return res.status(400).json({ success: false, message: 'missing_fields' });
+      return res.status(200).json({ success: false, message: 'missing_fields' });
     }
 
     const accessKey = process.env.WEB3FORMS_ACCESS_KEY;
     if (!accessKey) {
-      return res.status(500).json({ success: false, message: 'not_configured' });
+      console.error('contact: WEB3FORMS_ACCESS_KEY is not set');
+      return res.status(200).json({ success: false, message: 'not_configured' });
     }
 
     const upstream = await fetch('https://api.web3forms.com/submit', {
@@ -47,16 +55,17 @@ module.exports = async (req, res) => {
       data = JSON.parse(rawText);
     } catch (parseErr) {
       console.error('contact: web3forms returned non-JSON', upstream.status, rawText.slice(0, 500));
-      return res.status(502).json({ success: false, message: 'upstream_bad_response' });
+      return res.status(200).json({ success: false, message: 'upstream_bad_response' });
     }
 
     if (!upstream.ok) {
       console.error('contact: web3forms rejected the request', upstream.status, data);
+      return res.status(200).json({ success: false, message: data.message || 'upstream_rejected' });
     }
 
-    return res.status(upstream.ok ? 200 : 502).json(data);
+    return res.status(200).json(data);
   } catch (err) {
     console.error('contact: unexpected error', err && err.stack ? err.stack : err);
-    return res.status(500).json({ success: false, message: 'unexpected_error' });
+    return res.status(200).json({ success: false, message: 'unexpected_error' });
   }
 };
