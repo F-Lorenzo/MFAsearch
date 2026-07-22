@@ -55,9 +55,14 @@ const T={
     ct_body:"Contanos qué necesitás y en menos de 24 horas te respondemos con una propuesta personalizada.",
     form_name:"Nombre",form_company:"Empresa",form_email:"Email",
     form_service:"Servicio de interés",form_sel_def:"Seleccioná un servicio",
-    form_msg:"Mensaje",form_send:"Enviar consulta",form_sending:"Abriendo tu cliente de email…",
+    form_msg:"Mensaje",form_send:"Enviar consulta",form_sending:"Enviando…",
     form_error:"Completá tu nombre, email y mensaje antes de enviar.",
-    form_success:"¡Gracias! Se abrió tu cliente de correo con la consulta lista para enviar.",
+    form_success:"¡Gracias! Tu consulta fue enviada correctamente.",
+    form_send_error:"No pudimos enviar tu consulta. Probá de nuevo o escribinos a contacto@mfasearch.com.ar.",
+    form_not_configured:"El formulario todavía no está configurado. Escribinos directamente a contacto@mfasearch.com.ar.",
+    form_success_title:"¡Gracias por tu consulta!",
+    form_success_body:"Recibimos tu mensaje correctamente. Te vamos a responder dentro de las próximas 24 horas.",
+    form_success_reset:"Enviar otra consulta",
     footer_copy:"© 2026 MFA Search. Todos los derechos reservados.",
     faqs:[
       {q:"¿Cuánto tiempo tarda un proceso de selección?",a:"El tiempo varía según la complejidad del perfil y la cantidad de posiciones, pero en promedio cubrimos posiciones en 21 días hábiles desde el inicio de la búsqueda."},
@@ -121,9 +126,14 @@ const T={
     ct_body:"Tell us what you need and we'll get back to you within 24 hours with a personalized proposal.",
     form_name:"Name",form_company:"Company",form_email:"Email",
     form_service:"Service of interest",form_sel_def:"Select a service",
-    form_msg:"Message",form_send:"Send inquiry",form_sending:"Opening your email client…",
+    form_msg:"Message",form_send:"Send inquiry",form_sending:"Sending…",
     form_error:"Please fill in your name, email and message before sending.",
-    form_success:"Thanks! Your email client opened with the message ready to send.",
+    form_success:"Thanks! Your inquiry was sent successfully.",
+    form_send_error:"We couldn't send your inquiry. Please try again or email us at contacto@mfasearch.com.ar.",
+    form_not_configured:"The form isn't configured yet. Please email us directly at contacto@mfasearch.com.ar.",
+    form_success_title:"Thanks for reaching out!",
+    form_success_body:"We received your message and will get back to you within 24 hours.",
+    form_success_reset:"Send another inquiry",
     footer_copy:"© 2026 MFA Search. All rights reserved.",
     faqs:[
       {q:"How long does a selection process take?",a:"It varies by profile complexity and number of positions, but on average we fill roles within 21 business days from the start of the search."},
@@ -230,21 +240,38 @@ window.addEventListener('resize',()=>{
   if(window.innerWidth>900 && menuOpen) closeMenu();
 },{passive:true});
 
-/* ══ Contact form (no backend — opens the user's email client with a pre-filled message) ══ */
+/* ══ Contact form — posts to /api/contact (Vercel Serverless Function).
+   That function holds the Web3Forms access key server-side (env var
+   WEB3FORMS_ACCESS_KEY) and forwards the message — the key never
+   reaches the browser. See api/contact.js. */
 function hideFormStatus(){
   const status=document.getElementById('formStatus');
   if(status){ status.classList.remove('show','success','error'); status.textContent=''; }
 }
 
-function handleContactSubmit(e){
+function showFormSuccess(){
+  document.getElementById('ctForm').hidden=true;
+  document.getElementById('formSuccess').hidden=false;
+}
+
+function resetContactForm(){
+  const form=document.getElementById('ctForm');
+  form.reset();
+  hideFormStatus();
+  document.getElementById('formSuccess').hidden=true;
+  form.hidden=false;
+  form.elements['name'].focus();
+}
+
+async function handleContactSubmit(e){
   e.preventDefault();
   const form=e.target;
-  const name=form.elements['name'].value.trim();
-  const company=form.elements['company'].value.trim();
-  const email=form.elements['email'].value.trim();
-  const service=form.elements['service'].value;
-  const message=form.elements['message'].value.trim();
   const status=document.getElementById('formStatus');
+  const submitBtn=form.querySelector('button[type="submit"]');
+
+  const name=form.elements['name'].value.trim();
+  const email=form.elements['email'].value.trim();
+  const message=form.elements['message'].value.trim();
 
   if(!name || !email || !message){
     status.textContent=T[lang].form_error;
@@ -253,23 +280,46 @@ function handleContactSubmit(e){
     return;
   }
 
-  const subject=encodeURIComponent(`Consulta de ${name}${company ? ' — ' + company : ''}`);
-  const bodyLines=[
-    `Nombre: ${name}`,
-    company ? `Empresa: ${company}` : null,
-    `Email: ${email}`,
-    service ? `Servicio de interés: ${service}` : null,
-    '',
-    message
-  ].filter(Boolean);
-  const body=encodeURIComponent(bodyLines.join('\n'));
+  // Disabling here — before the first await — blocks every further click/Enter
+  // on this button until the request settles (success or error).
+  submitBtn.disabled=true;
+  form.setAttribute('aria-busy','true');
+  status.textContent=T[lang].form_sending;
+  status.classList.remove('success','error');
+  status.classList.add('show');
 
-  window.location.href=`mailto:contacto@mfasearch.com.ar?subject=${subject}&body=${body}`;
+  try{
+    const res=await fetch(form.action,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify({
+        name,
+        email,
+        message,
+        company:form.elements['company'].value.trim(),
+        service:form.elements['service'].value,
+        botcheck:form.elements['botcheck'].checked
+      })
+    });
+    const result=await res.json();
 
-  status.textContent=T[lang].form_success;
-  status.classList.remove('error');
-  status.classList.add('show','success');
-  form.reset();
+    if(result.success){
+      hideFormStatus();
+      showFormSuccess();
+      return;
+    } else if(result.message==='not_configured'){
+      throw new Error('not_configured');
+    } else {
+      throw new Error(result.message || 'send_error');
+    }
+  } catch(err){
+    status.textContent=err.message==='not_configured' ? T[lang].form_not_configured : T[lang].form_send_error;
+    status.classList.remove('success');
+    status.classList.add('error');
+  } finally {
+    form.removeAttribute('aria-busy');
+    submitBtn.disabled=false;
+  }
 }
 
 /* ══ GSAP ══ */
@@ -352,4 +402,5 @@ gsap.from('#ctForm > *',{y:34,opacity:0,duration:.7,stagger:.07,delay:.12,ease:'
 
 /* ══ Init ══ */
 buildFAQ();
-document.getElementById('contactForm').addEventListener('submit',handleContactSubmit);
+document.getElementById('ctForm').addEventListener('submit',handleContactSubmit);
+document.getElementById('formSuccessReset').addEventListener('click',resetContactForm);

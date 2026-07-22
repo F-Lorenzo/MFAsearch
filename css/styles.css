@@ -448,6 +448,7 @@ section.alt{background:var(--bg)}
 .contact-item a,.contact-item span{color:rgba(255,255,255,.70);text-decoration:none;font-size:clamp(.85rem,1.2vw,.95rem);transition:color .2s;word-break:break-word}
 .contact-item a:hover{color:var(--white)}
 .contact-form{display:flex;flex-direction:column;gap:14px}
+.contact-form[hidden]{display:none}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .form-field{display:flex;flex-direction:column;gap:6px}
 .form-field label{font-size:.7rem;font-weight:600;color:rgba(255,255,255,.42);letter-spacing:.1em;text-transform:uppercase}
@@ -468,6 +469,27 @@ section.alt{background:var(--bg)}
 .form-status.show{display:block}
 .form-status.success{background:rgba(34,136,156,.18);border:1px solid rgba(34,136,156,.4);color:#bfe6ec}
 .form-status.error{background:rgba(200,64,64,.15);border:1px solid rgba(200,64,64,.4);color:#f2c2c2}
+
+.contact-form-wrap{position:relative}
+.form-success{
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+  padding:clamp(36px,5vw,52px) clamp(20px,3vw,32px);
+  background:rgba(34,136,156,.12);border:1px solid rgba(34,136,156,.35);
+  border-radius:10px;animation:formSuccessIn .5s cubic-bezier(.25,.46,.45,.94);
+}
+.form-success[hidden]{display:none}
+.form-success-icon{
+  width:56px;height:56px;border-radius:50%;flex-shrink:0;
+  background:var(--teal-lt);color:var(--white);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;font-weight:800;margin-bottom:18px;
+  box-shadow:0 8px 28px rgba(34,136,156,.4);
+  animation:formSuccessPop .5s .1s cubic-bezier(.34,1.56,.64,1) backwards;
+}
+.form-success-title{font-size:1.15rem;font-weight:700;color:var(--white);margin-bottom:8px}
+.form-success-body{font-size:.9rem;color:rgba(255,255,255,.62);line-height:1.7;max-width:360px;margin-bottom:24px}
+@keyframes formSuccessIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes formSuccessPop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
 
 /* ══════════════════════════════════════
    FOOTER

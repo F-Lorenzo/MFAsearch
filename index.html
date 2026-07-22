@@ -472,26 +472,35 @@
         <div class="contact-item"><div class="contact-icon" aria-hidden="true">📍</div><span>Buenos Aires, Argentina</span></div>
       </div>
     </div>
-    <form class="contact-form" id="ctForm" novalidate>
-      <div class="form-row">
-        <div class="form-field"><label for="f-name" data-i18n="form_name">Nombre</label><input id="f-name" name="name" type="text" placeholder="Juan García" autocomplete="name"/></div>
-        <div class="form-field"><label for="f-company" data-i18n="form_company">Empresa</label><input id="f-company" name="company" type="text" placeholder="Acme S.A." autocomplete="organization"/></div>
+    <div class="contact-form-wrap" id="ctFormWrap">
+      <form class="contact-form" id="ctForm" action="/api/contact" method="POST" novalidate>
+        <input type="checkbox" name="botcheck" class="visually-hidden" tabindex="-1" autocomplete="off"/>
+        <div class="form-row">
+          <div class="form-field"><label for="f-name" data-i18n="form_name">Nombre</label><input id="f-name" name="name" type="text" placeholder="Juan García" autocomplete="name"/></div>
+          <div class="form-field"><label for="f-company" data-i18n="form_company">Empresa</label><input id="f-company" name="company" type="text" placeholder="Acme S.A." autocomplete="organization"/></div>
+        </div>
+        <div class="form-field"><label for="f-email" data-i18n="form_email">Email</label><input id="f-email" name="email" type="email" placeholder="juan@empresa.com" autocomplete="email"/></div>
+        <div class="form-field">
+          <label for="f-service" data-i18n="form_service">Servicio de interés</label>
+          <select id="f-service" name="service">
+            <option value="" data-i18n="form_sel_def">Seleccioná un servicio</option>
+            <option data-i18n="sv1_t">Reclutamiento y Selección</option>
+            <option data-i18n="sv2_t">Evaluación de Candidatos</option>
+            <option data-i18n="sv3_t">Head Hunting Ejecutivo</option>
+            <option data-i18n="sv4_t">RPO — Outsourcing de Reclutamiento</option>
+          </select>
+        </div>
+        <div class="form-field"><label for="f-message" data-i18n="form_msg">Mensaje</label><textarea id="f-message" name="message" placeholder="Contanos sobre la posición que buscás cubrir..." rows="4"></textarea></div>
+        <button class="btn-primary" type="submit" style="width:100%;padding:16px;font-size:.95rem" data-i18n="form_send">Enviar consulta</button>
+        <div class="form-status" id="formStatus" role="status" aria-live="polite"></div>
+      </form>
+      <div class="form-success" id="formSuccess" role="status" aria-live="polite" hidden>
+        <div class="form-success-icon" aria-hidden="true">✓</div>
+        <h3 class="form-success-title" data-i18n="form_success_title">¡Gracias por tu consulta!</h3>
+        <p class="form-success-body" data-i18n="form_success_body">Recibimos tu mensaje correctamente. Te vamos a responder dentro de las próximas 24 horas.</p>
+        <button type="button" class="btn-outline" id="formSuccessReset" data-i18n="form_success_reset">Enviar otra consulta</button>
       </div>
-      <div class="form-field"><label for="f-email" data-i18n="form_email">Email</label><input id="f-email" name="email" type="email" placeholder="juan@empresa.com" autocomplete="email"/></div>
-      <div class="form-field">
-        <label for="f-service" data-i18n="form_service">Servicio de interés</label>
-        <select id="f-service" name="service">
-          <option value="" data-i18n="form_sel_def">Seleccioná un servicio</option>
-          <option data-i18n="sv1_t">Reclutamiento y Selección</option>
-          <option data-i18n="sv2_t">Evaluación de Candidatos</option>
-          <option data-i18n="sv3_t">Head Hunting Ejecutivo</option>
-          <option data-i18n="sv4_t">RPO — Outsourcing de Reclutamiento</option>
-        </select>
-      </div>
-      <div class="form-field"><label for="f-message" data-i18n="form_msg">Mensaje</label><textarea id="f-message" name="message" placeholder="Contanos sobre la posición que buscás cubrir..." rows="4"></textarea></div>
-      <button class="btn-primary" type="submit" style="width:100%;padding:16px;font-size:.95rem" data-i18n="form_send">Enviar consulta</button>
-      <div class="form-status" id="formStatus" role="status" aria-live="polite"></div>
-    </form>
+    </div>
   </div>
 </section>
 
