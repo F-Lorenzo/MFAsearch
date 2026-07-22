@@ -24,8 +24,9 @@ module.exports = async (req, res) => {
     return res.status(500).json({ success: false, message: 'not_configured' });
   }
 
+  let upstream;
   try {
-    const upstream = await fetch('https://api.web3forms.com/submit', {
+    upstream = await fetch('https://api.web3forms.com/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify({
@@ -40,9 +41,23 @@ module.exports = async (req, res) => {
         message
       })
     });
-    const data = await upstream.json();
-    return res.status(upstream.ok ? 200 : 502).json(data);
   } catch (err) {
-    return res.status(500).json({ success: false, message: 'upstream_error' });
+    console.error('contact: could not reach web3forms', err);
+    return res.status(500).json({ success: false, message: 'upstream_unreachable' });
   }
+
+  const rawText = await upstream.text();
+  let data;
+  try {
+    data = JSON.parse(rawText);
+  } catch (err) {
+    console.error('contact: web3forms returned non-JSON', upstream.status, rawText.slice(0, 500));
+    return res.status(502).json({ success: false, message: 'upstream_bad_response' });
+  }
+
+  if (!upstream.ok) {
+    console.error('contact: web3forms rejected the request', upstream.status, data);
+  }
+
+  return res.status(upstream.ok ? 200 : 502).json(data);
 };
