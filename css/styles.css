@@ -379,7 +379,7 @@ section.alt{background:var(--bg)}
 .team-card{border-radius:10px;overflow:hidden;border:1px solid var(--border);background:var(--white);transition:box-shadow .3s,transform .3s}
 .team-card:hover{box-shadow:0 16px 48px rgba(13,33,55,.12);transform:translateY(-4px)}
 .team-card-img{height:clamp(180px,22vw,220px);overflow:hidden}
-.team-card-img img{width:100%;height:100%;object-fit:cover;object-position:center top;transition:transform .5s}
+.team-card-img img{width:100%;height:100%;object-fit:cover;object-position:center 20%;transition:transform .5s}
 .team-card:hover .team-card-img img{transform:scale(1.05)}
 .team-card-body{padding:clamp(18px,2.5vw,24px)}
 .team-avatar-initials{
